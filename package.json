@@ -1,3 +1,11 @@
 {
-  "main": "index.js"
+  "name": "libprisbeam",
+  "version": "2.3.0",
+  "main": "index.js",
+  "scripts": {
+    "install": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
 }
