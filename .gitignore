@@ -2,3 +2,4 @@ src/*.js
 *.js
 src/*.js.map
 *.js.map
+node_modules
