@@ -133,7 +133,11 @@ export class Prisbeam {
             });
         });
 
-        this.database.close();
+        await new Promise<void>((res) => {
+            this.database.close(() => {
+                res();
+            });
+        });
 
         if (this.cache) {
             await fs.promises.copyFile(this.cache + "/work.pbdb", this.path + "/current.pbdb");
