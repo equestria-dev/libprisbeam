@@ -321,7 +321,7 @@ export class PrisbeamFrontend {
             delete image['se'];
             delete image['sw'];
 
-            image['tag_ids'] = image['tags'].substring(1, image['tags'].length - 1).split(",").map((i: string) => parseInt(i));
+            image['tag_ids'] = image['tags'] ? image['tags'].substring(1, image['tags'].length - 1).split(",").map((i: string) => parseInt(i)) : [];
             image['tags'] = image['tag_ids'].map((i: number) => this.deserialize(this.tagsHashed[i]));
 
             image['animated'] = image['animated'] === 1;
