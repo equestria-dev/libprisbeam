@@ -202,7 +202,7 @@ export class PrisbeamUpdater {
                     });
                 }
 
-                const sqlite3 = require(process.platform === "darwin" ? "../../sql/mac" : "../../sql/win");
+                const sqlite3 = require(process.platform === "darwin" ? "../../../sql/mac" : "../../../sql/win");
 
                 global.preDatabase = new sqlite3.Database(preprocessed);
                 global.tagsDatabase = new sqlite3.Database(tags);
