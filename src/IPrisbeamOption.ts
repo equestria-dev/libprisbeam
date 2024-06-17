@@ -1,4 +1,4 @@
-export interface PrisbeamOptions {
+export interface IPrisbeamOption {
     database: string,
     sqlitePath?: string,
     cachePath?: string,

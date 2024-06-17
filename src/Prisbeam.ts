@@ -1,23 +1,26 @@
 import {PrisbeamFrontend} from "./PrisbeamFrontend";
-import {PrisbeamOptions} from "./PrisbeamOptions";
+import {IPrisbeamOption} from "./IPrisbeamOption";
 import fs from "fs";
 import path from "path";
-import {PrisbeamUpdater, VERSION} from "../index";
+import {VERSION} from "../index";
 import {PrisbeamPropertyStore} from "./PrisbeamPropertyStore";
+import {Database} from "sqlite3";
+import {SQLiteInstance} from "./SQLiteInstance";
 
 export class Prisbeam {
+    // noinspection JSUnusedGlobalSymbols
     public version: string = VERSION;
     public readonly verbose: boolean;
     public readonly path: string;
     readonly sensitiveImageProtocol: boolean;
     public frontend: PrisbeamFrontend;
     readonly cache?: string;
-    private sqlite: any;
-    private database: any;
+    private sqlite: SQLiteInstance;
+    private database: Database;
     private readonly readOnly: boolean;
     public propertyStore: PrisbeamPropertyStore;
 
-    constructor(options: PrisbeamOptions) {
+    constructor(options: IPrisbeamOption) {
         this.verbose = options.verbose ?? true;
         this.sqlite = require(options.sqlitePath ?? "sqlite3").verbose();
 
@@ -72,6 +75,7 @@ export class Prisbeam {
         });
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async initialize(restoreBackup: boolean) {
         if (restoreBackup) {
             let backups = (await fs.promises.readdir(this.path)).filter(i => i.endsWith(".pbdb") && i !== "current.pbdb");
@@ -116,9 +120,9 @@ export class Prisbeam {
 
         this.frontend = new PrisbeamFrontend(this);
         this.propertyStore = new PrisbeamPropertyStore(this);
-        this.propertyStore.initialize();
+        await this.propertyStore.initialize();
 
-        this.frontend.initialize();
+        await this.frontend.initialize();
         await this.defragment();
     }
 
@@ -126,8 +130,10 @@ export class Prisbeam {
         await this._sql("VACUUM");
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async close() {
         await new Promise<void>((res) => {
+            // @ts-ignore
             this.database.wait(() => {
                 res();
             });
@@ -142,13 +148,5 @@ export class Prisbeam {
         if (this.cache) {
             await fs.promises.copyFile(this.cache + "/work.pbdb", this.path + "/current.pbdb");
         }
-    }
-
-    /**
-     * @deprecated Use PrisbeamUpdater instead
-     */
-    async updateFromPreprocessed(preprocessed: string, tags: string, statusUpdateHandler: Function) {
-        let updater = new PrisbeamUpdater(this);
-        await updater.updateFromPreprocessed(preprocessed, tags, statusUpdateHandler);
     }
 }

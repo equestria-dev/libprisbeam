@@ -20,6 +20,7 @@ export class PrisbeamPropertyStore {
         }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async setItem(key: string, value: string) {
         if ((await this.backend._sql("SELECT COUNT(*) FROM metadata WHERE key = " + this.sqlstr(key)))[0]["COUNT(*)"] === 0) {
             await this.backend._sql('INSERT INTO metadata(key, value) VALUES (' + this.sqlstr(key) + ', ' + this.sqlstr(value) + ')');
@@ -29,6 +30,7 @@ export class PrisbeamPropertyStore {
         }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async removeItem(key: string) {
         if ((await this.backend._sql("SELECT COUNT(*) FROM metadata WHERE key = " + this.sqlstr(key)))[0]["COUNT(*)"] === 0) {
             return;
@@ -38,6 +40,7 @@ export class PrisbeamPropertyStore {
         }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async getItem(key: string) {
         if ((await this.backend._sql("SELECT COUNT(*) FROM metadata WHERE key = " + this.sqlstr(key)))[0]["COUNT(*)"] === 0) {
             return null;
@@ -46,6 +49,7 @@ export class PrisbeamPropertyStore {
         }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async clear() {
         await this.backend._sql("DROP TABLE IF EXISTS metadata");
         await this.backend._sql("CREATE TABLE metadata (key TEXT NOT NULL UNIQUE, value LONGTEXT NOT NULL, PRIMARY KEY (key))");

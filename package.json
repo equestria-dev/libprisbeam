@@ -1,13 +1,16 @@
 {
   "name": "libprisbeam",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "main": "index.js",
   "scripts": {
     "install": "tsc",
     "build": "tsc"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "@types/node": "^20.12.8"
+    "@types/node": "^20.12.8",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@types/sqlite3": "^3.1.11"
   }
 }

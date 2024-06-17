@@ -1,9 +1,9 @@
 import {SearchError} from "./SearchError";
 import {PrisbeamFrontend} from "./PrisbeamFrontend";
 
-export interface PrisbeamSearchToken {
+export interface IPrisbeamSearchToken {
     type: PrisbeamSearchTokenType,
-    data?: any
+    data?: string
 }
 
 export enum PrisbeamSearchTokenType {
@@ -420,8 +420,8 @@ export class PrisbeamSearch {
         let pos = 0;
 
         let inParentheses = false;
-        let currentParenthesesInner: string;
-        let tokens: PrisbeamSearchToken[] = [];
+        let currentParenthesesInner: string = "";
+        let tokens: IPrisbeamSearchToken[] = [];
         let currentTag = "";
         let subParentheses = 0;
 
@@ -631,7 +631,7 @@ export class PrisbeamSearch {
         return this.queryTokensToString(tokens);
     }
 
-    queryTokensToString(tokens: PrisbeamSearchToken[]) {
+    queryTokensToString(tokens: IPrisbeamSearchToken[]) {
         let str = "";
 
         for (let token of tokens) {
@@ -674,12 +674,5 @@ export class PrisbeamSearch {
         } else {
             return "TRUE";
         }
-    }
-
-    /**
-     * @deprecated
-     */
-    buildQuery(_1: string, _2: boolean, _3: boolean = false): never {
-        throw new SearchError("The Prisbeam search engine version 1 has been removed from this version of libprisbeam and cannot be used anymore. Please switch to 'buildQueryV2' instead of 'buildQuery'.");
     }
 }

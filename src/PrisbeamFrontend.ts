@@ -5,9 +5,11 @@ import zlib from "zlib";
 import {PrisbeamListType} from "./PrisbeamListType";
 import {Prisbeam} from "../index";
 import {SearchError} from "./SearchError";
+import {IPrisbeamImage} from "./IPrisbeamImage";
+import {IPrisbeamTag} from "./IPrisbeamTag";
 
 export class PrisbeamFrontend {
-    public tags: any[][];
+    public tags: IPrisbeamTag[];
     public tagsHashed: object;
     private readonly backend: Prisbeam;
     readonly searchEngine: PrisbeamSearch;
@@ -29,6 +31,7 @@ export class PrisbeamFrontend {
         }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async search(query: string, allowUnknownTags: boolean = false) {
         try {
             if (query !== "*") {
@@ -52,10 +55,12 @@ export class PrisbeamFrontend {
         return this.getImageFile(image, type);
     }
 
-    async getImage(id: number | string): Promise<any | null> {
+    // noinspection JSUnusedGlobalSymbols
+    async getImage(id: number | string): Promise<IPrisbeamImage | null> {
         return (await this.imageListResolver(await this.backend._sql("SELECT * FROM images JOIN image_tags ON images.id=image_tags.image_id JOIN image_intensities ON images.id=image_intensities.image_id JOIN image_representations ON images.id=image_representations.image_id WHERE id=" + id)))[0] ?? null;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async countImages(): Promise<number> {
         return ((await this.imageListResolver(await this.backend._sql("SELECT COUNT(*) FROM images")))[0] ?? {})["COUNT(*)"] ?? 0;
     }
@@ -338,7 +343,7 @@ export class PrisbeamFrontend {
         return list;
     }
 
-    async getAllImages(type: PrisbeamListType = PrisbeamListType.Array): Promise<{} | any[]> {
+    async getAllImages(type: PrisbeamListType = PrisbeamListType.Array): Promise<{} | IPrisbeamImage[]> {
         let query = "SELECT * FROM images JOIN image_tags ON images.id=image_tags.image_id JOIN image_intensities ON images.id=image_intensities.image_id JOIN image_representations ON images.id=image_representations.image_id";
 
         if (type === PrisbeamListType.Array) {
@@ -360,6 +365,7 @@ export class PrisbeamFrontend {
         return (await this.backend._sql("SELECT implications FROM tags WHERE name = " + sqlstr(tag)))[0]["implications"].split(",").filter((i: string) => i.trim() !== "").map((i: string) => parseInt(i));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async getImpliedTagIdsFromId(tag: number): Promise<number[]> {
         return (await this.backend._sql("SELECT implications FROM tags WHERE id = " + tag))[0]["implications"].split(",").filter((i: string) => i.trim() !== "").map((i: string) => parseInt(i));
     }
@@ -376,6 +382,7 @@ export class PrisbeamFrontend {
         return r;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     async getImpliedTagNamesFromId(tag: number): Promise<string[]> {
         let r = [];
         let data = (await this.backend._sql("SELECT implications FROM tags WHERE id = " + tag))[0]["implications"].split(",").filter((i: string) => i.trim() !== "").map((i: string) => parseInt(i));

@@ -1,6 +1,8 @@
 import {Prisbeam} from "./Prisbeam";
 import fs from "fs";
 import http from "http";
+import {IPrisbeamUpdaterGeneric} from "./IPrisbeamUpdaterGeneric";
+import {IncomingMessage, ServerResponse} from "node:http";
 
 export class PrisbeamUpdater {
     private readonly database: Prisbeam;
@@ -9,6 +11,7 @@ export class PrisbeamUpdater {
         this.database = instance;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     updateFromPreprocessed(preprocessed: string, tags: string, statusUpdateHandler: Function) {
         return new Promise<void>((res) => {
             let sqlGet: Function;
@@ -180,7 +183,7 @@ export class PrisbeamUpdater {
 
                 let sqlPreGet = (sql: string) => {
                     return new Promise((res, rej) => {
-                        global.preDatabase.all(sql, function (err: Error | null, data: any) {
+                        global.preDatabase.all(sql, function (err: Error | null, data: IPrisbeamUpdaterGeneric) {
                             if (err) {
                                 rej(err);
                             } else {
@@ -192,7 +195,7 @@ export class PrisbeamUpdater {
 
                 let sqlTagGet = (sql: string) => {
                     return new Promise((res, rej) => {
-                        global.tagsDatabase.all(sql, function (err: Error | null, data: any) {
+                        global.tagsDatabase.all(sql, function (err: Error | null, data: IPrisbeamUpdaterGeneric) {
                             if (err) {
                                 rej(err);
                             } else {
@@ -217,7 +220,7 @@ export class PrisbeamUpdater {
                 const port = 19842;
                 const preprocessedImageCount = parseInt((await sqlPreGet("SELECT COUNT(*) FROM images"))[0]["COUNT(*)"]);
 
-                let preprocessedServer = http.createServer(async (req: any, res: any) => {
+                let preprocessedServer = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
                     let page = 1;
                     let requestPage = new URL(req.url, "https://nothing.invalid").searchParams.get('page');
                     let out = {
@@ -228,8 +231,8 @@ export class PrisbeamUpdater {
                         page = parseInt(requestPage);
                     }
 
-                    let everything = (await sqlPreGet("SELECT * FROM images LIMIT 50 OFFSET " + ((page - 1) * 50))) as any[];
-                    out.images = everything.map(i => JSON.parse(atob(i.json)));
+                    let everything = (await sqlPreGet("SELECT * FROM images LIMIT 50 OFFSET " + ((page - 1) * 50))) as IPrisbeamUpdaterGeneric[];
+                    out.images = everything.map(i => JSON.parse(atob(i['json'])));
 
                     res.writeHead(200);
                     res.end(JSON.stringify(out));
@@ -240,7 +243,7 @@ export class PrisbeamUpdater {
                     console.log(`Server is running on http://${host}:${port}`);
                 });
 
-                let updateTags = ((await sqlTagGet("SELECT * FROM tags")) as any[]).map(i => JSON.parse(atob(i['json'])));
+                let updateTags = ((await sqlTagGet("SELECT * FROM tags")) as IPrisbeamUpdaterGeneric[]).map(i => JSON.parse(atob(i['json'])));
                 let index = 0;
 
                 for (let i = 0; i < updateTags.length; i += 50) {
@@ -250,8 +253,9 @@ export class PrisbeamUpdater {
                     let implications = [];
 
                     for (let tag of chunk) {
+                        // noinspection ES6MissingAwait
                         aliases.push(sqlstr(await sqlTagGet(`SELECT target FROM aliases WHERE source = ` + tag['id'])[0]?.target ?? null));
-                        implications.push(sqlstr("," + (await sqlTagGet(`SELECT target FROM implications WHERE source = ` + tag['id']) as any[]).map(i => i.target).join(",") + ","));
+                        implications.push(sqlstr("," + (await sqlTagGet(`SELECT target FROM implications WHERE source = ` + tag['id']) as IPrisbeamUpdaterGeneric[]).map(i => i['target']).join(",") + ","));
                     }
 
                     await sqlQuery(`INSERT INTO tags(id, name, alias, implications, category, description, description_short, slug) VALUES ${chunk.map((tag, index) => `(${tag['id']}, ${sqlstr(tag['name'])}, ${aliases[index]}, ${implications[index]}, ${sqlstr(tag['category'])}, ${sqlstr(tag['description'])}, ${sqlstr(tag['short_description'])}, ${sqlstr(tag['slug'])})`).join(",")}`);
@@ -300,10 +304,10 @@ export class PrisbeamUpdater {
                             validateStatus: (s: number) => (s >= 200 && s < 300) || (s === 404 || s === 403 || s === 401),
                             method: 'GET',
                             responseType: 'arraybuffer',
-                            onDownloadProgress: (event: any) => {
+                            onDownloadProgress: (event: IPrisbeamUpdaterGeneric) => {
                                 global.statusInfo[2] = {
-                                    title: "Image: " + image['id'] + " (" + Math.round((event.loaded / event.total) * 100) + "%)",
-                                    progress: ((event.loaded / event.total) * 100),
+                                    title: "Image: " + image['id'] + " (" + Math.round((event['loaded'] / event['total']) * 100) + "%)",
+                                    progress: ((event['loaded'] / event['total']) * 100),
                                     indeterminate: false
                                 }
 
@@ -363,7 +367,7 @@ export class PrisbeamUpdater {
 
                         let start = new Date().getTime();
                         let tryFetch = true;
-                        let page: object;
+                        let page: object = {};
 
                         while (tryFetch) {
                             try {
@@ -512,7 +516,7 @@ export class PrisbeamUpdater {
                 await consolidateDB();
             }
 
-            update();
+            update().then(_ => {});
         });
     }
 }
