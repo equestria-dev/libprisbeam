@@ -1,13 +1,13 @@
-import {Prisbeam} from "./Prisbeam";
+import {Faunerie} from "./Faunerie";
 import fs from "fs";
 import http from "http";
-import {IPrisbeamUpdaterGeneric} from "./IPrisbeamUpdaterGeneric";
+import {IFaunerieUpdaterGeneric} from "./IFaunerieUpdaterGeneric";
 import {IncomingMessage, ServerResponse} from "node:http";
 
-export class PrisbeamUpdater {
-    private readonly database: Prisbeam;
+export class FaunerieUpdater {
+    private readonly database: Faunerie;
 
-    constructor(instance: Prisbeam) {
+    constructor(instance: Faunerie) {
         this.database = instance;
     }
 
@@ -183,7 +183,7 @@ export class PrisbeamUpdater {
 
                 let sqlPreGet = (sql: string) => {
                     return new Promise((res, rej) => {
-                        global.preDatabase.all(sql, function (err: Error | null, data: IPrisbeamUpdaterGeneric) {
+                        global.preDatabase.all(sql, function (err: Error | null, data: IFaunerieUpdaterGeneric) {
                             if (err) {
                                 rej(err);
                             } else {
@@ -195,7 +195,7 @@ export class PrisbeamUpdater {
 
                 let sqlTagGet = (sql: string) => {
                     return new Promise((res, rej) => {
-                        global.tagsDatabase.all(sql, function (err: Error | null, data: IPrisbeamUpdaterGeneric) {
+                        global.tagsDatabase.all(sql, function (err: Error | null, data: IFaunerieUpdaterGeneric) {
                             if (err) {
                                 rej(err);
                             } else {
@@ -231,7 +231,7 @@ export class PrisbeamUpdater {
                         page = parseInt(requestPage);
                     }
 
-                    let everything = (await sqlPreGet("SELECT * FROM images LIMIT 50 OFFSET " + ((page - 1) * 50))) as IPrisbeamUpdaterGeneric[];
+                    let everything = (await sqlPreGet("SELECT * FROM images LIMIT 50 OFFSET " + ((page - 1) * 50))) as IFaunerieUpdaterGeneric[];
                     out.images = everything.map(i => JSON.parse(atob(i['json'])));
 
                     res.writeHead(200);
@@ -243,7 +243,7 @@ export class PrisbeamUpdater {
                     console.log(`Server is running on http://${host}:${port}`);
                 });
 
-                let updateTags = ((await sqlTagGet("SELECT * FROM tags")) as IPrisbeamUpdaterGeneric[]).map(i => JSON.parse(atob(i['json'])));
+                let updateTags = ((await sqlTagGet("SELECT * FROM tags")) as IFaunerieUpdaterGeneric[]).map(i => JSON.parse(atob(i['json'])));
                 let index = 0;
 
                 for (let i = 0; i < updateTags.length; i += 50) {
@@ -255,7 +255,7 @@ export class PrisbeamUpdater {
                     for (let tag of chunk) {
                         // noinspection ES6MissingAwait
                         aliases.push(sqlstr(await sqlTagGet(`SELECT target FROM aliases WHERE source = ` + tag['id'])[0]?.target ?? null));
-                        implications.push(sqlstr("," + (await sqlTagGet(`SELECT target FROM implications WHERE source = ` + tag['id']) as IPrisbeamUpdaterGeneric[]).map(i => i['target']).join(",") + ","));
+                        implications.push(sqlstr("," + (await sqlTagGet(`SELECT target FROM implications WHERE source = ` + tag['id']) as IFaunerieUpdaterGeneric[]).map(i => i['target']).join(",") + ","));
                     }
 
                     await sqlQuery(`INSERT INTO tags(id, name, alias, implications, category, description, description_short, slug) VALUES ${chunk.map((tag, index) => `(${tag['id']}, ${sqlstr(tag['name'])}, ${aliases[index]}, ${implications[index]}, ${sqlstr(tag['category'])}, ${sqlstr(tag['description'])}, ${sqlstr(tag['short_description'])}, ${sqlstr(tag['slug'])})`).join(",")}`);
@@ -304,7 +304,7 @@ export class PrisbeamUpdater {
                             validateStatus: (s: number) => (s >= 200 && s < 300) || (s === 404 || s === 403 || s === 401),
                             method: 'GET',
                             responseType: 'arraybuffer',
-                            onDownloadProgress: (event: IPrisbeamUpdaterGeneric) => {
+                            onDownloadProgress: (event: IFaunerieUpdaterGeneric) => {
                                 global.statusInfo[2] = {
                                     title: "Image: " + image['id'] + " (" + Math.round((event['loaded'] / event['total']) * 100) + "%)",
                                     progress: ((event['loaded'] / event['total']) * 100),

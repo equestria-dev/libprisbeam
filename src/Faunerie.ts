@@ -1,31 +1,31 @@
-import {PrisbeamFrontend} from "./PrisbeamFrontend";
-import {IPrisbeamOption} from "./IPrisbeamOption";
+import {FaunerieFrontend} from "./FaunerieFrontend";
+import {IFaunerieOption} from "./IFaunerieOption";
 import fs from "fs";
 import path from "path";
 import {VERSION} from "../index";
-import {PrisbeamPropertyStore} from "./PrisbeamPropertyStore";
+import {FauneriePropertyStore} from "./FauneriePropertyStore";
 import {Database} from "sqlite3";
 import {SQLiteInstance} from "./SQLiteInstance";
 
-export class Prisbeam {
+export class Faunerie {
     // noinspection JSUnusedGlobalSymbols
     public version: string = VERSION;
     public readonly verbose: boolean;
     public readonly path: string;
     readonly sensitiveImageProtocol: boolean;
-    public frontend: PrisbeamFrontend;
+    public frontend: FaunerieFrontend;
     readonly cache?: string;
     private sqlite: SQLiteInstance;
     private database: Database;
     private readonly readOnly: boolean;
-    public propertyStore: PrisbeamPropertyStore;
+    public propertyStore: FauneriePropertyStore;
 
-    constructor(options: IPrisbeamOption) {
+    constructor(options: IFaunerieOption) {
         this.verbose = options.verbose ?? true;
         this.sqlite = require(options.sqlitePath ?? "sqlite3").verbose();
 
         if (!fs.existsSync(path.resolve(options.database))) throw new Error("Invalid database folder specified: " + path.resolve(options.database));
-        if (!fs.existsSync(path.resolve(options.database) + "/instance.pbmk")) throw new Error("Not a valid Prisbeam database: " + path.resolve(options.database));
+        if (!fs.existsSync(path.resolve(options.database) + "/instance.pbmk")) throw new Error("Not a valid Faunerie database: " + path.resolve(options.database));
 
         this.path = path.resolve(options.database);
 
@@ -109,17 +109,17 @@ export class Prisbeam {
         });
 
         if (!this.readOnly) {
-            if ((await this._sql("SELECT COUNT(*) FROM metadata WHERE key='libprisbeam_timestamp'"))[0]["COUNT(*)"] === 0) {
-                await this._sql('INSERT INTO metadata(key, value) VALUES ("libprisbeam_timestamp", "' + new Date().toISOString() + '")');
+            if ((await this._sql("SELECT COUNT(*) FROM metadata WHERE key='libfaunerie_timestamp'"))[0]["COUNT(*)"] === 0) {
+                await this._sql('INSERT INTO metadata(key, value) VALUES ("libfaunerie_timestamp", "' + new Date().toISOString() + '")');
             } else {
-                await this._sql('UPDATE metadata SET value="' + new Date().toISOString() + '" WHERE key="libprisbeam_timestamp"');
+                await this._sql('UPDATE metadata SET value="' + new Date().toISOString() + '" WHERE key="libfaunerie_timestamp"');
             }
         }
 
         await this._sql("CREATE TABLE IF NOT EXISTS metadata (key TEXT NOT NULL UNIQUE, value LONGTEXT NOT NULL, PRIMARY KEY (key))");
 
-        this.frontend = new PrisbeamFrontend(this);
-        this.propertyStore = new PrisbeamPropertyStore(this);
+        this.frontend = new FaunerieFrontend(this);
+        this.propertyStore = new FauneriePropertyStore(this);
         await this.propertyStore.initialize();
 
         await this.frontend.initialize();

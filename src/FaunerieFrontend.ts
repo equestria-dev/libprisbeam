@@ -1,24 +1,24 @@
-import {PrisbeamSearch} from "./PrisbeamSearch";
-import {PrisbeamImageType} from "./PrisbeamImageType";
+import {FaunerieSearch} from "./FaunerieSearch";
+import {FaunerieImageType} from "./FaunerieImageType";
 import fs from "fs";
 import zlib from "zlib";
-import {PrisbeamListType} from "./PrisbeamListType";
-import {Prisbeam} from "../index";
+import {FaunerieListType} from "./FaunerieListType";
+import {Faunerie} from "../index";
 import {SearchError} from "./SearchError";
-import {IPrisbeamImage} from "./IPrisbeamImage";
-import {IPrisbeamTag} from "./IPrisbeamTag";
+import {IFaunerieImage} from "./IFaunerieImage";
+import {IFaunerieTag} from "./IFaunerieTag";
 
-export class PrisbeamFrontend {
-    public tags: IPrisbeamTag[];
+export class FaunerieFrontend {
+    public tags: IFaunerieTag[];
     public tagsHashed: object;
-    private readonly backend: Prisbeam;
-    readonly searchEngine: PrisbeamSearch;
+    private readonly backend: Faunerie;
+    readonly searchEngine: FaunerieSearch;
     private readonly sensitiveImageProtocol: boolean;
 
-    constructor(backend: Prisbeam) {
+    constructor(backend: Faunerie) {
         this.backend = backend;
         this.sensitiveImageProtocol = backend.sensitiveImageProtocol;
-        this.searchEngine = new PrisbeamSearch(this);
+        this.searchEngine = new FaunerieSearch(this);
     }
 
     async initialize() {
@@ -38,7 +38,7 @@ export class PrisbeamFrontend {
                 let sql = this.searchEngine.buildQueryV2(query, allowUnknownTags);
                 return await this.imageListResolver(await this.backend._sql("SELECT * FROM images JOIN image_tags ON images.id=image_tags.image_id JOIN image_intensities ON images.id=image_intensities.image_id JOIN image_representations ON images.id=image_representations.image_id WHERE " + sql));
             } else {
-                return await this.getAllImages(PrisbeamListType.Array);
+                return await this.getAllImages(FaunerieListType.Array);
             }
         } catch (e) {
             if (e.message.startsWith("SQLITE_ERROR: Expression tree is too large (maximum depth 1000)")) {
@@ -50,13 +50,13 @@ export class PrisbeamFrontend {
     }
 
     // noinspection JSUnusedGlobalSymbols
-    async getImageFileFromId(id: number, type: PrisbeamImageType) {
+    async getImageFileFromId(id: number, type: FaunerieImageType) {
         let image = (await this.imageListResolver(await this.backend._sql("SELECT * FROM images JOIN image_tags ON images.id=image_tags.image_id JOIN image_intensities ON images.id=image_intensities.image_id JOIN image_representations ON images.id=image_representations.image_id WHERE id=" + id)))[0];
         return this.getImageFile(image, type);
     }
 
     // noinspection JSUnusedGlobalSymbols
-    async getImage(id: number | string): Promise<IPrisbeamImage | null> {
+    async getImage(id: number | string): Promise<IFaunerieImage | null> {
         return (await this.imageListResolver(await this.backend._sql("SELECT * FROM images JOIN image_tags ON images.id=image_tags.image_id JOIN image_intensities ON images.id=image_intensities.image_id JOIN image_representations ON images.id=image_representations.image_id WHERE id=" + id)))[0] ?? null;
     }
 
@@ -65,11 +65,11 @@ export class PrisbeamFrontend {
         return ((await this.imageListResolver(await this.backend._sql("SELECT COUNT(*) FROM images")))[0] ?? {})["COUNT(*)"] ?? 0;
     }
 
-    getImageFile(image: object, type: PrisbeamImageType) {
-        function getPath(backend: Prisbeam) {
+    getImageFile(image: object, type: FaunerieImageType) {
+        function getPath(backend: Faunerie) {
             const path = require('path');
 
-            if (type === PrisbeamImageType.ViewFile || type === PrisbeamImageType.ViewURL) {
+            if (type === FaunerieImageType.ViewFile || type === FaunerieImageType.ViewURL) {
                 try {
                     let l: fs.PathLike;
 
@@ -81,7 +81,7 @@ export class PrisbeamFrontend {
                         fs.lstatSync(l);
                     }
 
-                    if (type === PrisbeamImageType.ViewURL) {
+                    if (type === FaunerieImageType.ViewURL) {
                         return "file://" + encodeURI(l.replaceAll("\\", "/"));
                     } else {
                         return l;
@@ -98,7 +98,7 @@ export class PrisbeamFrontend {
                             fs.lstatSync(l);
                         }
 
-                        if (type === PrisbeamImageType.ViewURL) {
+                        if (type === FaunerieImageType.ViewURL) {
                             return "file://" + encodeURI(l.replaceAll("\\", "/"));
                         } else {
                             return l;
@@ -115,7 +115,7 @@ export class PrisbeamFrontend {
                                 fs.lstatSync(l);
                             }
 
-                            if (type === PrisbeamImageType.ViewURL) {
+                            if (type === FaunerieImageType.ViewURL) {
                                 return "file://" + encodeURI(l.replaceAll("\\", "/"));
                             } else {
                                 return l;
@@ -132,7 +132,7 @@ export class PrisbeamFrontend {
                                     fs.lstatSync(l);
                                 }
 
-                                if (type === PrisbeamImageType.ViewURL) {
+                                if (type === FaunerieImageType.ViewURL) {
                                     return "file://" + encodeURI(l.replaceAll("\\", "/"));
                                 } else {
                                     return l;
@@ -149,13 +149,13 @@ export class PrisbeamFrontend {
                                         fs.lstatSync(l);
                                     }
 
-                                    if (type === PrisbeamImageType.ViewURL) {
+                                    if (type === FaunerieImageType.ViewURL) {
                                         return "file://" + encodeURI(l.replaceAll("\\", "/"));
                                     } else {
                                         return l;
                                     }
                                 } catch (e) {
-                                    if (type === PrisbeamImageType.ViewFile) {
+                                    if (type === FaunerieImageType.ViewFile) {
                                         return null;
                                     } else {
                                         return image['representations']['thumb'];
@@ -165,7 +165,7 @@ export class PrisbeamFrontend {
                         }
                     }
                 }
-            } else if (type === PrisbeamImageType.ThumbnailFile || type === PrisbeamImageType.ThumbnailURL) {
+            } else if (type === FaunerieImageType.ThumbnailFile || type === FaunerieImageType.ThumbnailURL) {
                 try {
                     let l: fs.PathLike;
 
@@ -177,7 +177,7 @@ export class PrisbeamFrontend {
                         fs.lstatSync(l);
                     }
 
-                    if (type === PrisbeamImageType.ThumbnailURL) {
+                    if (type === FaunerieImageType.ThumbnailURL) {
                         return "file://" + encodeURI(l.replaceAll("\\", "/"));
                     } else {
                         return l;
@@ -194,7 +194,7 @@ export class PrisbeamFrontend {
                             fs.lstatSync(l);
                         }
 
-                        if (type === PrisbeamImageType.ThumbnailURL) {
+                        if (type === FaunerieImageType.ThumbnailURL) {
                             return "file://" + encodeURI(l.replaceAll("\\", "/"));
                         } else {
                             return l;
@@ -211,7 +211,7 @@ export class PrisbeamFrontend {
                                 fs.lstatSync(l);
                             }
 
-                            if (type === PrisbeamImageType.ThumbnailURL) {
+                            if (type === FaunerieImageType.ThumbnailURL) {
                                 return "file://" + encodeURI(l.replaceAll("\\", "/"));
                             } else {
                                 return l;
@@ -228,7 +228,7 @@ export class PrisbeamFrontend {
                                     fs.lstatSync(l);
                                 }
 
-                                if (type === PrisbeamImageType.ThumbnailURL) {
+                                if (type === FaunerieImageType.ThumbnailURL) {
                                     return "file://" + encodeURI(l.replaceAll("\\", "/"));
                                 } else {
                                     return l;
@@ -245,13 +245,13 @@ export class PrisbeamFrontend {
                                         fs.lstatSync(l);
                                     }
 
-                                    if (type === PrisbeamImageType.ThumbnailURL) {
+                                    if (type === FaunerieImageType.ThumbnailURL) {
                                         return "file://" + encodeURI(l.replaceAll("\\", "/"));
                                     } else {
                                         return l;
                                     }
                                 } catch (e) {
-                                    if (type === PrisbeamImageType.ThumbnailFile) {
+                                    if (type === FaunerieImageType.ThumbnailFile) {
                                         return null;
                                     } else {
                                         return image['representations']['thumb'];
@@ -266,13 +266,13 @@ export class PrisbeamFrontend {
 
         let path = getPath(this.backend);
 
-        if (type === PrisbeamImageType.ThumbnailURL && path.endsWith(".bin")) {
+        if (type === FaunerieImageType.ThumbnailURL && path.endsWith(".bin")) {
             if (this.sensitiveImageProtocol) {
                 return path.replace("file://", "pbip://") + "?mime=" + encodeURIComponent(image['mime_type']);
             } else {
                 return URL.createObjectURL(new Blob([zlib.inflateRawSync(fs.readFileSync(path.replace("file://", ""))).buffer], {type: image['mime_type'].startsWith("video/") ? "image/gif" : image['mime_type']}));
             }
-        } else if (type === PrisbeamImageType.ViewURL && path.endsWith(".bin")) {
+        } else if (type === FaunerieImageType.ViewURL && path.endsWith(".bin")) {
             if (this.sensitiveImageProtocol) {
                 return path.replace("file://", "pbip://") + "?mime=" + encodeURIComponent(image['mime_type']);
             } else {
@@ -343,10 +343,10 @@ export class PrisbeamFrontend {
         return list;
     }
 
-    async getAllImages(type: PrisbeamListType = PrisbeamListType.Array): Promise<{} | IPrisbeamImage[]> {
+    async getAllImages(type: FaunerieListType = FaunerieListType.Array): Promise<{} | IFaunerieImage[]> {
         let query = "SELECT * FROM images JOIN image_tags ON images.id=image_tags.image_id JOIN image_intensities ON images.id=image_intensities.image_id JOIN image_representations ON images.id=image_representations.image_id";
 
-        if (type === PrisbeamListType.Array) {
+        if (type === FaunerieListType.Array) {
             return await this.imageListResolver(await this.backend._sql(query));
         } else {
             let _list = await this.imageListResolver(await this.backend._sql(query));

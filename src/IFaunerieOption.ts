@@ -1,4 +1,4 @@
-export interface IPrisbeamOption {
+export interface IFaunerieOption {
     database: string,
     sqlitePath?: string,
     cachePath?: string,

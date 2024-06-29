@@ -1,3 +1,3 @@
-export enum PrisbeamImageType {
+export enum FaunerieImageType {
     ThumbnailURL, ViewURL, ThumbnailFile, ViewFile
 }

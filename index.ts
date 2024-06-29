@@ -1,6 +1,6 @@
-export {Prisbeam} from "./src/Prisbeam";
-export {PrisbeamImageType} from "./src/PrisbeamImageType";
-export {PrisbeamListType} from "./src/PrisbeamListType";
-export {PrisbeamUpdater} from "./src/PrisbeamUpdater";
+export {Faunerie} from "./src/Faunerie";
+export {FaunerieImageType} from "./src/FaunerieImageType";
+export {FaunerieListType} from "./src/FaunerieListType";
+export {FaunerieUpdater} from "./src/FaunerieUpdater";
 
-export const VERSION: string = "2.2.0";
+export const VERSION: string = require('./package.json').version;

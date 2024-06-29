@@ -1,6 +1,6 @@
 {
-  "name": "libprisbeam",
-  "version": "2.3.4",
+  "name": "libfaunerie",
+  "version": "2.4.0",
   "main": "index.js",
   "scripts": {
     "install": "tsc",

@@ -1,10 +1,10 @@
-import {Prisbeam} from "./Prisbeam";
+import {Faunerie} from "./Faunerie";
 
-export class PrisbeamPropertyStore {
-    backend: Prisbeam;
+export class FauneriePropertyStore {
+    backend: Faunerie;
     length: number;
 
-    constructor(backend: Prisbeam) {
+    constructor(backend: Faunerie) {
         this.backend = backend;
     }
 

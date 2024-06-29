@@ -1,12 +1,12 @@
 import {SearchError} from "./SearchError";
-import {PrisbeamFrontend} from "./PrisbeamFrontend";
+import {FaunerieFrontend} from "./FaunerieFrontend";
 
-export interface IPrisbeamSearchToken {
-    type: PrisbeamSearchTokenType,
+export interface IFaunerieSearchToken {
+    type: FaunerieSearchTokenType,
     data?: string
 }
 
-export enum PrisbeamSearchTokenType {
+export enum FaunerieSearchTokenType {
     Subquery,
     Not,
     And,
@@ -14,10 +14,10 @@ export enum PrisbeamSearchTokenType {
     Query
 }
 
-export class PrisbeamSearch {
-    private readonly frontend: PrisbeamFrontend;
+export class FaunerieSearch {
+    private readonly frontend: FaunerieFrontend;
 
-    constructor(frontend: PrisbeamFrontend) {
+    constructor(frontend: FaunerieFrontend) {
         this.frontend = frontend;
     }
 
@@ -421,7 +421,7 @@ export class PrisbeamSearch {
 
         let inParentheses = false;
         let currentParenthesesInner: string = "";
-        let tokens: IPrisbeamSearchToken[] = [];
+        let tokens: IFaunerieSearchToken[] = [];
         let currentTag = "";
         let subParentheses = 0;
 
@@ -433,7 +433,7 @@ export class PrisbeamSearch {
                 if (subParentheses < 0) {
                     inParentheses = false;
                     tokens.push({
-                        type: PrisbeamSearchTokenType.Subquery,
+                        type: FaunerieSearchTokenType.Subquery,
                         data: this.buildQueryInner(currentParenthesesInner, allowUnknownTags)
                     });
                     currentParenthesesInner = null;
@@ -450,7 +450,7 @@ export class PrisbeamSearch {
                     case "-":
                         if (currentTag.trim().length === 0) {
                             tokens.push({
-                                type: PrisbeamSearchTokenType.Not,
+                                type: FaunerieSearchTokenType.Not,
                                 data: null
                             });
                         } else {
@@ -463,14 +463,14 @@ export class PrisbeamSearch {
                     case ",":
                         if (currentTag.trim().length > 0) {
                             tokens.push({
-                                type: PrisbeamSearchTokenType.Query,
+                                type: FaunerieSearchTokenType.Query,
                                 data: this.checkQuery(currentTag.trim(), allowUnknownTags)
                             });
                             currentTag = "";
                         }
 
                         tokens.push({
-                            type: PrisbeamSearchTokenType.And,
+                            type: FaunerieSearchTokenType.And,
                             data: null
                         });
                         pos++;
@@ -480,14 +480,14 @@ export class PrisbeamSearch {
                         if (query[pos + 1] === "&") {
                             if (currentTag.trim().length > 0) {
                                 tokens.push({
-                                    type: PrisbeamSearchTokenType.Query,
+                                    type: FaunerieSearchTokenType.Query,
                                     data: this.checkQuery(currentTag.trim(), allowUnknownTags)
                                 });
                                 currentTag = "";
                             }
 
                             tokens.push({
-                                type: PrisbeamSearchTokenType.And,
+                                type: FaunerieSearchTokenType.And,
                                 data: null
                             });
                             pos += 2;
@@ -502,14 +502,14 @@ export class PrisbeamSearch {
                         if (query[pos + 1] === "|") {
                             if (currentTag.trim().length > 0) {
                                 tokens.push({
-                                    type: PrisbeamSearchTokenType.Query,
+                                    type: FaunerieSearchTokenType.Query,
                                     data: this.checkQuery(currentTag.trim(), allowUnknownTags)
                                 });
                                 currentTag = "";
                             }
 
                             tokens.push({
-                                type: PrisbeamSearchTokenType.Or,
+                                type: FaunerieSearchTokenType.Or,
                                 data: null
                             });
                             pos += 2;
@@ -524,14 +524,14 @@ export class PrisbeamSearch {
                         if (query[pos + 1] === "R") {
                             if (currentTag.trim().length > 0) {
                                 tokens.push({
-                                    type: PrisbeamSearchTokenType.Query,
+                                    type: FaunerieSearchTokenType.Query,
                                     data: this.checkQuery(currentTag.trim(), allowUnknownTags)
                                 });
                                 currentTag = "";
                             }
 
                             tokens.push({
-                                type: PrisbeamSearchTokenType.Or,
+                                type: FaunerieSearchTokenType.Or,
                                 data: null
                             });
                             pos += 2;
@@ -546,14 +546,14 @@ export class PrisbeamSearch {
                         if (query[pos + 1] === "N" && query[pos + 2] === "D") {
                             if (currentTag.trim().length > 0) {
                                 tokens.push({
-                                    type: PrisbeamSearchTokenType.Query,
+                                    type: FaunerieSearchTokenType.Query,
                                     data: this.checkQuery(currentTag.trim(), allowUnknownTags)
                                 });
                                 currentTag = "";
                             }
 
                             tokens.push({
-                                type: PrisbeamSearchTokenType.And,
+                                type: FaunerieSearchTokenType.And,
                                 data: null
                             });
                             pos += 3;
@@ -568,14 +568,14 @@ export class PrisbeamSearch {
                         if (query[pos + 1] === "O" && query[pos + 2] === "T") {
                             if (currentTag.trim().length > 0) {
                                 tokens.push({
-                                    type: PrisbeamSearchTokenType.Query,
+                                    type: FaunerieSearchTokenType.Query,
                                     data: this.checkQuery(currentTag.trim(), allowUnknownTags)
                                 });
                                 currentTag = "";
                             }
 
                             tokens.push({
-                                type: PrisbeamSearchTokenType.Not,
+                                type: FaunerieSearchTokenType.Not,
                                 data: null
                             });
                             pos += 3;
@@ -623,7 +623,7 @@ export class PrisbeamSearch {
 
         if (currentTag.trim().length > 0) {
             tokens.push({
-                type: PrisbeamSearchTokenType.Query,
+                type: FaunerieSearchTokenType.Query,
                 data: this.checkQuery(currentTag.trim(), allowUnknownTags)
             });
         }
@@ -631,28 +631,28 @@ export class PrisbeamSearch {
         return this.queryTokensToString(tokens);
     }
 
-    queryTokensToString(tokens: IPrisbeamSearchToken[]) {
+    queryTokensToString(tokens: IFaunerieSearchToken[]) {
         let str = "";
 
         for (let token of tokens) {
             switch (token.type) {
-                case PrisbeamSearchTokenType.And:
+                case FaunerieSearchTokenType.And:
                     str += "AND";
                     break;
 
-                case PrisbeamSearchTokenType.Query:
+                case FaunerieSearchTokenType.Query:
                     str += token.data;
                     break;
 
-                case PrisbeamSearchTokenType.Subquery:
+                case FaunerieSearchTokenType.Subquery:
                     str += "(" + token.data + ")";
                     break;
 
-                case PrisbeamSearchTokenType.Not:
+                case FaunerieSearchTokenType.Not:
                     str += "NOT";
                     break;
 
-                case PrisbeamSearchTokenType.Or:
+                case FaunerieSearchTokenType.Or:
                     str += "OR";
                     break;
             }
